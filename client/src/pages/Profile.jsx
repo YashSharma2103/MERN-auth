@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {getDownloadURL, getStorage,ref, uploadBytesResumable} from 'firebase/storage';
 import {app} from '../firebase';
-import { updateUserStart,updateUserSuccess,updateUserFailure } from '../redux/user/userSlice';
+import { updateUserStart,updateUserSuccess,updateUserFailure, deleteUserStart, deleteUserSuccess, deleteUserFailure, signOut } from '../redux/user/userSlice';
 
 
 const Profile = () => {
@@ -73,6 +73,33 @@ const Profile = () => {
     }
   };
 
+  const handleDelete=async ()=>{
+    try{
+      dispatch(deleteUserStart())
+      const res=await fetch(`api/user/delete/${currentUser._id}`,{
+        method:'DELETE',
+      });
+      const data= await res.json(); 
+      if(data.success==false){
+        dispatch(deleteUserFailure(data));
+        return
+      }
+      dispatch(deleteUserSuccess(data))
+    }catch(error){
+      console.log(error)
+      dispatch(deleteUserFailure(error))
+    }
+  }
+
+  const handleSignOut=async ()=>{
+    try{
+      await fetch('api/auth/signout');
+      dispatch(signOut())
+    }catch(error){
+      console.log(error);
+    }
+  }
+
   return (
     <div className='p-3 max-w-lg mx-auto'>
       <h1 className='text-3xl font-semibold text-center my-7 mt-2'>Profile</h1>
@@ -133,8 +160,8 @@ const Profile = () => {
           </button>
       </form>
       <div className='flex justify-between mt-5'>
-        <span className='text-red-700 cursor-pointer'>Delete Account</span>
-        <span className='text-red-700 cursor-pointer'>Sign out</span>
+        <span onClick={handleDelete} className='text-red-700 cursor-pointer'>Delete Account</span>
+        <span onClick={handleSignOut} className='text-red-700 cursor-pointer'>Sign out</span>
       </div>
       <p className='text-red-700 mt-5'>{error && 'something went wrong!'}</p>
       <p className='text-green-700 mt-5'>{updateSuccess && 'User updated successfully'}</p>
